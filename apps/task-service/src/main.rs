@@ -11,7 +11,7 @@ use std::time::Duration;
 use anyhow::Result;
 use axum::{
     Router,
-    routing::{delete, get, patch, post},
+    routing::{get, post},
 };
 use sqlx::postgres::PgPoolOptions;
 use tower::ServiceBuilder;
@@ -85,7 +85,7 @@ async fn main() -> Result<()> {
     ));
 
     // ── Start NATS subscriber with fully constructed service ──────────────────
-    if let Some(sub) = subscriber {
+    if let Some(_sub) = subscriber {
         // Rebuild subscriber with correct task_service pointer
         let real_sub = Arc::new(NatsSubscriber::new(
             // We need a second NATS connection for the subscriber

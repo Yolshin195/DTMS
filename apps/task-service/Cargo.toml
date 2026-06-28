@@ -16,7 +16,7 @@ tower-http = { version = "0.5", features = ["cors", "trace", "request-id", "util
 hyper = { version = "1", features = ["full"] }
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "migrate"] }
+sqlx = { version = "0.9.0", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "migrate"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

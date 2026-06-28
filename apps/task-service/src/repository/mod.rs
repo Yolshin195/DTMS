@@ -173,7 +173,7 @@ impl TaskRepository for PgTaskRepository {
         .fetch_all(self.pool.as_ref())
         .await?;
 
-        Ok(rows.into_iter().map(|r| r.id).collect())
+        Ok(rows.into_iter().filter_map(|r| r.id).collect())
     }
 
     async fn find_children(&self, parent_id: Uuid) -> Result<Vec<Task>, DomainError> {
