@@ -95,7 +95,7 @@ impl NatsSubscriber {
     }
 
     /// Spawn background tokio tasks for each subscription.
-    pub async fn run(self: Arc<Self>) {
+    pub fn run(self: Arc<Self>) {
         let this = Arc::clone(&self);
         tokio::spawn(async move {
             this.subscribe_user_deleted().await;

@@ -17,7 +17,7 @@ pub trait TaskRepository: Send + Sync {
         parent_id: Option<Uuid>,
     ) -> Result<Vec<Task>, DomainError>;
     async fn find_subtree_ids(&self, root_id: Uuid) -> Result<Vec<Uuid>, DomainError>;
-    async fn find_children(&self, parent_id: Uuid) -> Result<Vec<Task>, DomainError>;
+    async fn find_by_ids(&self, ids: &[Uuid]) -> Result<Vec<Task>, DomainError>;
     async fn update(&self, id: Uuid, patch: &TaskPatchRow) -> Result<Task, DomainError>;
     async fn soft_delete(&self, id: Uuid) -> Result<(), DomainError>;
     async fn soft_delete_by_user(&self, user_id: Uuid) -> Result<u64, DomainError>;
@@ -176,11 +176,14 @@ impl TaskRepository for PgTaskRepository {
         Ok(rows.into_iter().filter_map(|r| r.id).collect())
     }
 
-    async fn find_children(&self, parent_id: Uuid) -> Result<Vec<Task>, DomainError> {
+    async fn find_by_ids(&self, ids: &[Uuid]) -> Result<Vec<Task>, DomainError> {
+        if ids.is_empty() {
+            return Ok(vec![]);
+        }
         let rows = sqlx::query_as!(
             TaskRow,
-            "SELECT * FROM tasks WHERE parent_id = $1 AND is_deleted = FALSE ORDER BY created_at ASC",
-            parent_id
+            "SELECT * FROM tasks WHERE id = ANY($1) AND is_deleted = FALSE",
+            ids as &[Uuid],
         )
         .fetch_all(self.pool.as_ref())
         .await?;

@@ -9,10 +9,10 @@ path = "src/main.rs"
 
 [dependencies]
 # Web framework
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.8.9", features = ["macros"] }
 tokio = { version = "1", features = ["full"] }
-tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "trace", "request-id", "util"] }
+tower = "0.5.3"
+tower-http = { version = "0.7.0", features = ["cors", "trace", "request-id", "util"] }
 hyper = { version = "1", features = ["full"] }
 
 # Database
@@ -28,30 +28,30 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Config
 dotenvy = "0.15"
-config = "0.14"
+config = "0.15.25"
 
 # OpenAPI
-utoipa = { version = "4", features = ["axum_extras", "chrono", "uuid"] }
-utoipa-swagger-ui = { version = "6", features = ["axum"] }
+utoipa = { version = "5.5.0", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 
 # NATS
-async-nats = "0.35"
+async-nats = "0.49.1"
 
 # Tracing / OpenTelemetry
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
-tracing-opentelemetry = "0.24"
-opentelemetry = { version = "0.23", features = ["trace"] }
-opentelemetry_sdk = { version = "0.23", features = ["rt-tokio", "trace"] }
-opentelemetry-otlp = { version = "0.16", features = ["grpc-tonic", "trace"] }
-opentelemetry-semantic-conventions = "0.15"
+tracing-opentelemetry = "0.33.0"
+opentelemetry = { version = "0.32.0", features = ["trace"] }
+opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio", "trace"] }
+opentelemetry-otlp = { version = "0.32.0", features = ["grpc-tonic", "trace"] }
+opentelemetry-semantic-conventions = "0.32.1"
 
 # Error handling
-thiserror = "1"
+thiserror = "2.0.18"
 anyhow = "1"
 
 # Validation
-validator = { version = "0.18", features = ["derive"] }
+validator = { version = "0.20.0", features = ["derive"] }
 
 # Async utilities
 futures = "0.3"
