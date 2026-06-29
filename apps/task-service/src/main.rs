@@ -31,7 +31,7 @@ use handlers::{
 use handlers::openapi::ApiDoc;
 use infrastructure::{
     nats::{NatsEventPublisher, NatsSubscriber, NoopEventPublisher},
-    telemetry::{init_telemetry, shutdown_telemetry},
+    telemetry::{init_telemetry},
 };
 use repository::PgTaskRepository;
 use service::TaskService;
@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
     let cfg = AppConfig::from_env()?;
 
     // ── Telemetry (must come before any tracing macros) ───────────────────────
-    init_telemetry(&cfg)?;
+    let provider = init_telemetry(&cfg)?;
     info!(service = %cfg.service_name, version = env!("CARGO_PKG_VERSION"), "starting");
 
     // ── Database pool ─────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ async fn main() -> Result<()> {
             async_nats::connect(&cfg.nats_url).await?,
             Arc::clone(&task_service),
         ));
-        real_sub.run().await;
+        real_sub.run();
     }
 
     // ── Router ────────────────────────────────────────────────────────────────
@@ -102,8 +102,8 @@ async fn main() -> Result<()> {
 
     let api_routes = Router::new()
         .route("/tasks",          post(create_task).get(list_tasks))
-        .route("/tasks/:id",      get(get_task).patch(update_task).delete(delete_task))
-        .route("/tasks/:id/tree", get(get_task_tree))
+        .route("/tasks/{id}",      get(get_task).patch(update_task).delete(delete_task))
+        .route("/tasks/{id}/tree", get(get_task_tree))
         .route("/health",         get(health))
         .with_state(state);
 
@@ -149,7 +149,7 @@ async fn main() -> Result<()> {
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
-    shutdown_telemetry();
+    let _ = provider.shutdown();
     info!("server shut down gracefully");
     Ok(())
 }

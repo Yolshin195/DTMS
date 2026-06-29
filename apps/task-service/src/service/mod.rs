@@ -120,28 +120,15 @@ impl TaskService {
     }
 
     /// Build the full subtree rooted at `task_id`.
-    #[instrument(skip(self))]
     pub async fn get_task_tree(
         &self,
         task_id: Uuid,
         user_id: Uuid,
     ) -> Result<TaskTree, DomainError> {
         let root = self.get_task(task_id, user_id).await?;
-        let tree = self.build_tree(root).await?;
-        Ok(tree)
-    }
-
-    /// Recursive tree builder — avoids N+1 via subtree id prefetch.
-    async fn build_tree(&self, task: Task) -> Result<TaskTree, DomainError> {
-        let children = self.repo.find_children(task.id).await?;
-        let mut child_trees = Vec::with_capacity(children.len());
-        for child in children {
-            child_trees.push(Box::pin(self.build_tree(child)).await?);
-        }
-        Ok(TaskTree {
-            task,
-            children: child_trees,
-        })
+        let all_ids = self.repo.find_subtree_ids(task_id).await?;
+        let all_tasks = self.repo.find_by_ids(&all_ids).await?;
+        Ok(assemble_tree(root, &all_tasks))
     }
 
     /// Partial update with ownership check.
@@ -251,4 +238,27 @@ impl TaskService {
         }
         Ok(())
     }
+}
+
+fn assemble_tree(root: Task, all_tasks: &[Task]) -> TaskTree {
+    use std::collections::HashMap;
+    let mut children_map: HashMap<Uuid, Vec<&Task>> = HashMap::new();
+    for task in all_tasks {
+        if let Some(pid) = task.parent_id {
+            children_map.entry(pid).or_default().push(task);
+        }
+    }
+    build_node(&root, &children_map)
+}
+
+fn build_node(task: &Task, children_map: &std::collections::HashMap<Uuid, Vec<&Task>>) -> TaskTree {
+    let children = children_map
+        .get(&task.id)
+        .map(|kids| {
+            let mut sorted = kids.clone();
+            sorted.sort_by_key(|t| t.created_at);
+            sorted.iter().map(|c| build_node(c, children_map)).collect()
+        })
+        .unwrap_or_default();
+    TaskTree { task: task.clone(), children }
 }
