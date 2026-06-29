@@ -78,6 +78,7 @@ pub struct Task {
 pub struct TaskTree {
     #[serde(flatten)]
     pub task: Task,
+    #[schema(no_recursion)]
     pub children: Vec<TaskTree>,
 }
 
